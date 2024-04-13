@@ -1,16 +1,37 @@
 bring cloud;
+bring ex;
 bring expect;
 bring http;
 bring util;
 
 let api = new cloud.Api() as "books-manager";
 
+let db = new ex.Table({
+  name: "books",
+  primaryKey: "ID",
+  columns: {
+    Title: ex.ColumnType.STRING,
+    Author: ex.ColumnType.STRING
+  }
+});
+
 api.get("/books/:bookID", inflight (req: cloud.ApiRequest) => {
   let bookID = req.vars.get("bookID");
-  log(bookID);
+  log("Getting record with ID {bookID}");
   
+  let book = db.tryGet(bookID);
+
+  if (book == nil) {
+    return cloud.ApiResponse {
+     status: 404,
+     body: "Book not found"
+    };
+  }
+
   let response = {
-    bookID: bookID
+    id: book?.get("ID"),
+    title: book?.get("Title"),
+    author: book?.get("Author")
   };
 
   return cloud.ApiResponse {
@@ -57,9 +78,26 @@ Tests
 ***********
 */
 test "GET /books/:bookID should return 200 when record exists" {
-  let result = http.get("{api.url}/books/1");
+  let id = "1";
+  let author = "An Author";
+  let title = "A Book";
+  db.insert(id, {Author: author, Title: title});
+
+  let result = http.get("{api.url}/books/{id}");
+
+  let body = Json.parse(result.body);
 
   expect.equal(result.status, 200);
+  expect.equal(body.get("id"), id);
+  expect.equal(body.get("author"), author);
+  expect.equal(body.get("title"), title);
+}
+
+test "GET /books/:bookID should return 404 when record is not found" {
+  let id = "1";
+  let result = http.get("{api.url}/books/{id}");
+
+  expect.equal(result.status, 404);
 }
 
 test "POST /books should return 200 with correct body " {
