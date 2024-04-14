@@ -6,7 +6,7 @@ on:
 
 jobs:
   terraform:
-    name: 'Terraform'
+    name: 'Deploy'
     runs-on: ubuntu-latest
     steps:
       # Checkout the repository to the GitHub Actions runner
@@ -21,7 +21,7 @@ jobs:
           aws-region: eu-central-1
 
       - name: Install Wing
-        run: npm install
+        run: npm i -g winglang
 
       - name: Compile Wing
         run: wing compile -t tf-aws -t ./platform
