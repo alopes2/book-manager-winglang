@@ -11,7 +11,8 @@ let db = new ex.Table({
   primaryKey: "ID",
   columns: {
     Title: ex.ColumnType.STRING,
-    Author: ex.ColumnType.STRING
+    Author: ex.ColumnType.STRING,
+    CreatedAt: ex.ColumnType.DATE
   }
 });
 
@@ -31,7 +32,8 @@ api.get("/books/:bookID", inflight (req: cloud.ApiRequest) => {
   let response = {
     id: book?.get("ID"),
     title: book?.get("Title"),
-    author: book?.get("Author")
+    author: book?.get("Author"),
+    createdAt: book?.get("CreatedAt")
   };
 
   return cloud.ApiResponse {
@@ -56,14 +58,29 @@ api.post("/books", inflight (req: cloud.ApiRequest) => {
   if (title == nil || author == nil) {
     return cloud.ApiResponse {
       status: 400,
-      body: "Title, author, and publishedAt are required"
+      body: "Title and author are required"
     };
   }
+
+  let bookID = util.uuidv4();
+  let createdAt = std.Datetime.utcNow();
+  let var month = "{createdAt.month + 1}";
+
+  if (createdAt.month < 10) {
+    month = "0{month}";
+  }
+
+  db.insert(bookID, {
+    Title: title, 
+    Author: author, 
+    CreatedAt: "{createdAt.year}-{month}-{createdAt.dayOfMonth}"
+  });
   
   let response = {
-    bookID: util.uuidv4(),
+    bookID: bookID,
     title: title,
     author: author,
+    createdAt: createdAt.toIso()
   };
 
   return cloud.ApiResponse {
@@ -81,7 +98,8 @@ test "GET /books/:bookID should return 200 when record exists" {
   let id = "1";
   let author = "An Author";
   let title = "A Book";
-  db.insert(id, {Author: author, Title: title});
+  let createdAt = "2024-04-14";
+  db.insert(id, {Author: author, Title: title, CreatedAt: createdAt});
 
   let result = http.get("{api.url}/books/{id}");
 
@@ -91,6 +109,7 @@ test "GET /books/:bookID should return 200 when record exists" {
   expect.equal(body.get("id"), id);
   expect.equal(body.get("author"), author);
   expect.equal(body.get("title"), title);
+  expect.equal(body.get("createdAt"), createdAt);
 }
 
 test "GET /books/:bookID should return 404 when record is not found" {
