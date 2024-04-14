@@ -1,10 +1,10 @@
-name: Deploy Infrastructure
+name: Destroy Infrastructure
 on:
   workflow_dispatch:
 
 jobs:
   terraform:
-    name: 'Deploy'
+    name: 'Destroy'
     runs-on: ubuntu-latest
     steps:
       # Checkout the repository to the GitHub Actions runner
