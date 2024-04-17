@@ -22,7 +22,7 @@ jobs:
         run: npm i -g winglang
 
       - name: Compile Wing
-        run: wing compile -t tf-aws main.w
+        run: wing compile -t tf-aws main.w -t ./platform.js
 
       # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
       - name: Setup Terraform
