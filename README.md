@@ -7,7 +7,5 @@ The application consists of:
 * DynamoDB for storing book metadata information such as
   * Author
   * Title
-  * Publishing date
-  * Download URL
-* S3 bucket to store the book file
+  * Created date
 
